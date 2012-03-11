@@ -1,0 +1,12 @@
+#{extends 'main.html' /}
+#{set title:'Home' /}
+
+#{if user}
+<h1>Welcome, ${user.name}! #{if user.isAdmin}(admin)#{/if}</h1>
+<a href="@{Secure.logout()}">Logout</a>
+<a href="@{Chat.index()}">Chat Room</a>
+#{/if}
+
+#{else}
+#{fbLogin text:'Log In', perms:'publish_stream' /}
+#{/else}

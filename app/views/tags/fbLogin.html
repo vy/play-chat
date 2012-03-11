@@ -1,0 +1,14 @@
+#{set 'moreNamespaces'}
+#{get 'moreNamespaces' /}
+xmlns:fb="http://www.facebook.com/2008/fbml"
+#{/set}
+
+<div>
+    <div id="fb-root"></div>
+    <script type="text/javascript" src="http://connect.facebook.net/en_US/all.js"></script>
+    <fb:login-button perms="${_perms}">
+        <a href="@{Security.auth()}" class="fb_button fb_button_medium">
+            <span class="fb_button_text">${_text}</span>
+        </a>
+    </fb:login-button>
+</div>

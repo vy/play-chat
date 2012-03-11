@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+
+<html #{get 'moreNamespaces' /}>
+    <head>
+        <title>#{get 'title' /}</title>
+        <meta charset="${_response_encoding}" />
+        #{stylesheet 'main.css' /}
+        #{get 'moreStyles' /}
+        #{favicon /}
+        #{script 'jquery.js' /}
+        #{get 'moreScripts' /}
+    </head>
+    <body>
+        #{doLayout /}
+    </body>
+</html>

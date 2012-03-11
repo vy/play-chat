@@ -1,0 +1,95 @@
+#{extends 'main.html' /}
+#{set title:'Chat Room' /}
+#{set 'moreScripts'}
+    #{script 'jquery.scrollTo.js' /}
+    #{script 'knockout.js' /}
+#{/set}
+#{set 'moreStyles'}
+    #{stylesheet 'chat.css' /}
+#{/set}
+
+<div>
+    <button data-bind="enable: !isJoined(), click: join">Join</button>
+    <button data-bind="enable: isJoined, click: leave">Leave</button>
+</div>
+
+<div id="messages" data-bind="foreach: messages">
+    <div>
+        <span class="date" data-bind="text: date"></span>
+        <span class="message" data-bind="if: type == 'MESSAGE'">
+            <span class="user" data-bind="text: user, css: { you: user == '${username}' }"></span>&gt;
+            <span class="text" data-bind="text: text"></span>
+        </span>
+        <span class="join" data-bind="if: type == 'JOIN'">
+            <span class="user" data-bind="text: user"></span> joins the room.
+        </span>
+        <span class="leave" data-bind="if: type == 'LEAVE'">
+            <span class="user" data-bind="text: user"></span> leaves the room.
+        </span>
+    </div>
+</div>
+
+<form data-bind="submit: say">
+    <label for="inputText">Type your text here:</label>
+    <input id="inputText" type="input" data-bind="enable: isJoined, value: messageText" />
+    <input type="submit" value="Send" data-bind="enable: isJoined" />
+</form>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        var XHR = {
+            join: #{jsAction @join() /},
+            leave: #{jsAction @leave() /},
+            say: #{jsAction @say() /},
+            waitMessages: #{jsAction @waitMessages(':lastReceived') /}
+        };
+
+        var RoomModel = function() {
+            var self = this;
+            var lastReceived = 0;
+
+            self.isJoined = ko.observable(false);
+            self.messages = ko.observableArray([]);
+            self.messageText = ko.observable("");
+
+            self.join = function() {
+                $.post(XHR.join(), {}, function() {
+                    self.isJoined(true);
+                    getMessages();
+                });
+            };
+
+            self.leave = function() {
+                $.post(XHR.leave(), {}, function() {
+                    self.isJoined(false);
+                });
+            };
+
+            self.say = function() {
+                $.post(XHR.say(), {text: self.messageText()});
+                self.messageText("");
+            };
+
+            var getMessages = function() {
+                if (self.isJoined())
+                    $.getJSON(XHR.waitMessages({lastReceived: lastReceived}), {},
+                            function(events) {
+                                $(events).each(function() {
+                                    self.messages.push(this.data);
+                                    lastReceived = this.id;
+                                });
+                                $("#messages").scrollTo("max");
+                                getMessages();
+                            });
+            };
+
+            $(window).unload(function() {
+                if (self.isJoined())
+                    $.post(XHR.leave());
+            });
+        };
+
+        var roomModel = new RoomModel();
+        ko.applyBindings(roomModel);
+    });
+</script>
